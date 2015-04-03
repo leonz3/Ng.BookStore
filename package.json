@@ -1,0 +1,22 @@
+{
+  "name": "Ng.BookStore",
+  "version": "1.0.0",
+  "description": "a angular's demo",
+  "main": "app/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leonz3/Ng.BookStore.git"
+  },
+  "keywords": [
+    "angular"
+  ],
+  "author": "leonz3",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leonz3/Ng.BookStore/issues"
+  },
+  "homepage": "https://github.com/leonz3/Ng.BookStore"
+}
