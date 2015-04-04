@@ -1,0 +1,39 @@
+<div class="row">
+    <div class="panel panel-default col-md-6 col-md-offset-3">
+    <div class="page-header">
+        <h5 class="panel-title">welcome to log</h5>
+    </div>
+    <div class="panel-body">
+        <form class="form-horizontal" name="signForm">
+            <div class="form-group">
+                <label for="name" class="col-md-2 text-right">name</label>
+                <diiv class="col-md-10 ">
+                    <input type="text" name="name" class="form-control" ng-model="name" required/>
+                </diiv>
+            </div>
+            <div class="form-group">
+                <label for="password" class="col-md-2 text-right">password</label>
+                <diiv class="col-md-10 ">
+                    <input type="password" name="password" class="form-control" ng-model="password" required/>
+                </diiv>
+            </div>
+            <div class="form-group" ng-hide="isSignIn">
+                <label for="repeatPassword" class="col-md-2 text-right">repeat</label>
+                <div class="col-md-10">
+                    <input type="password" name="repeatPassword" class="form-control" ng-model="repeatPassword"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-10 col-md-offset-2" ng-show="isSignIn">
+                    <button class="btn btn-primary" ng-click="SignIn()">sign in</button>
+                    <button class="btn btn-default" ng-click="ToggleSign()">sign up</button>
+                </div>
+                <div class="col-md-10 col-md-offset-2" ng-hide="isSignIn">
+                    <button class="btn btn-primary" ng-click="SignUp()">sign up</button>
+                    <button class="btn btn-default" ng-click="ToggleSign()">sign in</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
