@@ -1,7 +1,7 @@
 var Controllers = angular.module('module.controllers',[]);
 
 Controllers
-    .controller('signController',['$scope','$http',function($scope,$http){
+    .controller('signController',['$scope','$http','$state',function($scope,$http,$state){
         $scope.isSignIn = true;
         $scope.ToggleSign = function(){
             this.isSignIn = !this.isSignIn;
@@ -11,7 +11,7 @@ Controllers
                 angular.forEach(data,function(item){
                     if($scope.name === item.name){
                         if($scope.password === item.password){
-                            location.href = '/#/list';
+                            $state.go('list',{category:'all'});
                             return ;
                         }else{
                             console.log('password is error');
@@ -25,12 +25,13 @@ Controllers
                 console.log('the repeat password is not correct');
                 return;
             }
-            location.href = '/#/list';
+            $state.go('list',{category:'all'});
         };
     }])
     .controller('listController',['$scope','$http','$state','$stateParams',function($scope,$http,$state,$stateParams){
+        var _category = $stateParams.category;
         $scope.filterOptions = {
-            filterText: "",
+            filterText: '',
             useExternalFilter: true
         };
         $scope.totalServerItems = 0;
@@ -39,22 +40,22 @@ Controllers
             pageSize: 10,
             currentPage: 1
         };
-        $scope.setPagingData = function(data, page, pageSize){
-            //var pagedData = data.slice((page - 1) * pageSize, page * pageSize);
-            //$scope.myData = pagedData;
-            //$scope.totalServerItems = data.length;
-            //if (!$scope.$$phase) {
-            //    $scope.$apply();
-            //}
+        $scope.setPagingData = function(data, page, pageSize) {
+            var pagedData = data.slice((page - 1) * pageSize, page * pageSize);
+            $scope.books = pagedData;
+            $scope.totalServerItems = data.length;
+            if (!$scope.$$phase) {
+                $scope.$apply();
+            }
         };
+
         $scope.getPagedDataAsync = function (pageSize, page, searchText) {
             setTimeout(function () {
                 var data;
                 if (searchText) {
                     var ft = searchText.toLowerCase();
                     $http.get('../data/book.json').success(function (result) {
-                        console.log(result)
-                        var largeLoad = result.all;
+                        var largeLoad = result[_category];
                         data = largeLoad.filter(function(item) {
                             return JSON.stringify(item).toLowerCase().indexOf(ft) != -1;
                         });
@@ -62,7 +63,7 @@ Controllers
                     });
                 } else {
                     $http.get('../data/book.json').success(function (largeLoad) {
-                        $scope.setPagingData(largeLoad,page,pageSize);
+                        $scope.setPagingData(largeLoad[_category],page,pageSize);
                     });
                 }
             }, 100);
@@ -70,67 +71,76 @@ Controllers
 
         $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
 
-        $scope.$watch('pagingOptions', function (newVal, oldVal) {
+        $scope.$watch('pagingOptions', function(newVal, oldVal) {
             if (newVal !== oldVal && newVal.currentPage !== oldVal.currentPage) {
                 $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
             }
         }, true);
-        $scope.$watch('filterOptions', function (newVal, oldVal) {
+        $scope.$watch('filterOptions', function(newVal, oldVal) {
             if (newVal !== oldVal) {
                 $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
             }
         }, true);
 
         $scope.gridOptions = {
-            data: 'book',
-            enablePaging: true,
-            showFooter: true,
-            totalServerItems: 'totalServerItems',
-            pagingOptions: $scope.pagingOptions,
-            filterOptions: $scope.filterOptions,
+            data: 'books',
+            //rowTemplate:'<div style="height: 100%"><div ng-style="{ \'cursor\': row.cursor }" ng-repeat="col in renderedColumns" ng-class="col.colIndex()" class="ngCell ">'
+            //+ '<div class="ngVerticalBar" ng-style="{height: rowHeight}" ng-class="{ ngVerticalBarVisible: !$last }"> </div>'
+            //+ '<div ng-cell></div></div></div>',
             multiSelect: false,
             enableCellSelection: true,
             enableRowSelection: false,
-            enableCellEdit: true,
-            enablePinning: true,
-            rowTemplate:'<div style="height: 100%"><div ng-style="{ \'cursor\': row.cursor }" ng-repeat="col in renderedColumns" ng-class="col.colIndex()" class="ngCell ">'
-                + '<div class="ngVerticalBar" ng-style="{height: rowHeight}" ng-class="{ ngVerticalBarVisible: !$last }"> </div>'
-                + '<div ng-cell></div></div></div>',
+            //enablePinning: true,
             columnDefs:[{
                 field:'index',
                 displayName:'序号',
-                width:60,
+                width:50,
                 sortable:false
             },{
                 field:'name',
-                displayName:'书名',
-                enableEdit:true
+                displayName:'书名'
+                //,enableEdit:true
             },{
                 field:'author',
                 displayName:'作者',
                 enableEdit:true,
-                width:120
+                width:100
             },{
                 field:'publishTime',
                 displayName: '发行时间',
-                enableEdit:true,
+                //enableEdit:true,
                 width:120
             },{
                 field:'price',
                 displayName: '价格',
-                enableEdit:true,
-                width:120
+                //enableEdit:true,
+                width:100
             },{
                 field:'id',
                 displayName:'操作',
-                enableEdit:false,
                 pinnable:false,
                 sortable:false,
-                cellTempale:'<a ui-sref="bookdetail({bookId:row.getProperty(col.field)})"></a>'
-            }]
+                width:80,
+                cellTemplate:'<a ui-sref="detail({category:row.getProperty(' + "'type'" + '),id:row.getProperty(col.field)})">详情</a> '
+                            + '<a ui-sref="edit.update({category:row.getProperty(' + "'type'" + '),id:row.getProperty(col.field)})">编辑</a>'
+            }],
+            enablePaging: true,
+            showFooter: true,
+            totalServerItems: 'totalServerItems',
+            pagingOptions: $scope.pagingOptions,
+            filterOptions: $scope.filterOptions
         };
 
     }])
-    .controller('detailController',['$scope',function(){
-
+    .controller('detailController',['$scope','$http','$state','$stateParams',function($scope,$http,$state,$stateParams){
+        var _type = $stateParams.category;
+        var _id = $stateParams.id;
+        $http.get('../data/book.json').success(function(result){
+            var books = result[_type];
+            angular.forEach(books,function(item){
+                if(item.id === _id){
+                    $scope.book = item;
+                }
+            });
+        });
     }]);
