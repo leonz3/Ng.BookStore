@@ -1,4 +1,4 @@
-var Controllers = angular.module('module.controllers',[]);
+var Controllers = angular.module('module.controllers',['module.services']);
 
 Controllers
     .controller('signController',['$scope','$http','$state',function($scope,$http,$state){
@@ -28,7 +28,7 @@ Controllers
             $state.go('list',{category:'all'});
         };
     }])
-    .controller('listController',['$scope','$http','$state','$stateParams',function($scope,$http,$state,$stateParams){
+    .controller('listController',['$scope','$http','$state','$stateParams','bookService',function($scope,$http,$state,$stateParams,bookService){
         var _category = $stateParams.category;
         $scope.filterOptions = {
             filterText: '',
@@ -54,17 +54,19 @@ Controllers
                 var data;
                 if (searchText) {
                     var ft = searchText.toLowerCase();
-                    $http.get('../data/book.json').success(function (result) {
-                        var largeLoad = result[_category];
-                        data = largeLoad.filter(function(item) {
+                    bookService.getBooksByCategory(_category,function(result){
+                        data = result.filter(function(item) {
                             return JSON.stringify(item).toLowerCase().indexOf(ft) != -1;
                         });
                         $scope.setPagingData(data,page,pageSize);
                     });
                 } else {
-                    $http.get('../data/book.json').success(function (largeLoad) {
-                        $scope.setPagingData(largeLoad[_category],page,pageSize);
-                    });
+                    bookService.getBooksByCategory(_category,function(result){
+                        $scope.setPagingData(result,page,pageSize);
+                    })
+                    //$http.get('../data/book.json').success(function (largeLoad) {
+                    //    $scope.setPagingData(largeLoad[_category],page,pageSize);
+                    //});
                 }
             }, 100);
         };
@@ -99,7 +101,6 @@ Controllers
             },{
                 field:'name',
                 displayName:'书名'
-                //,enableEdit:true
             },{
                 field:'author',
                 displayName:'作者',
@@ -108,12 +109,10 @@ Controllers
             },{
                 field:'publishTime',
                 displayName: '发行时间',
-                //enableEdit:true,
                 width:120
             },{
                 field:'price',
                 displayName: '价格',
-                //enableEdit:true,
                 width:100
             },{
                 field:'id',
@@ -122,7 +121,7 @@ Controllers
                 sortable:false,
                 width:80,
                 cellTemplate:'<a ui-sref="detail({category:row.getProperty(' + "'type'" + '),id:row.getProperty(col.field)})">详情</a> '
-                            + '<a ui-sref="edit.update({category:row.getProperty(' + "'type'" + '),id:row.getProperty(col.field)})">编辑</a>'
+                            + '<a ui-sref="update({category:row.getProperty(' + "'type'" + '),id:row.getProperty(col.field)})">编辑</a>'
             }],
             enablePaging: true,
             showFooter: true,
@@ -132,15 +131,33 @@ Controllers
         };
 
     }])
-    .controller('detailController',['$scope','$http','$state','$stateParams',function($scope,$http,$state,$stateParams){
-        var _type = $stateParams.category;
-        var _id = $stateParams.id;
-        $http.get('../data/book.json').success(function(result){
-            var books = result[_type];
-            angular.forEach(books,function(item){
-                if(item.id === _id){
-                    $scope.book = item;
-                }
+    .controller('detailController',['$scope','$http','$state','$stateParams','bookService',function($scope,$http,$state,$stateParams,bookService){
+        bookService.getBookById($stateParams.category,$stateParams.id,function(result){
+            $scope.book = result;
+        })
+        //$http.get('../data/book.json').success(function(result){
+        //    var books = result[_type];
+        //    angular.forEach(books,function(item){
+        //        if(item.id === _id){
+        //            $scope.book = item;
+        //        }
+        //    });
+        //});
+    }])
+    .controller('editController',['$scope','$http','$state','$stateParams','bookService',function($scope,$http,$state,$stateParams,bookService){
+        var _category = $stateParams.category,
+            _id = $stateParams.id;
+        if(_category && _id){
+            $scope.title = '编辑书籍';
+            bookService.getBookById(_category,_id,function(result){
+                $scope.book = result;
             });
-        });
+        }else{
+            $scope.title = '新增书籍';
+            $scope.book = {};
+        }
+        $scope.submit = function(){
+            console.log($scope.book);
+            //$http.post('',$scope.book).success(function(){});
+        }
     }]);

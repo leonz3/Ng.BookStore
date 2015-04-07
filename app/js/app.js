@@ -1,4 +1,4 @@
-var app = angular.module('app', ['ui.router', 'ngGrid', 'module.controllers']);
+var app = angular.module('app', ['ui.router', 'ngGrid', 'module.controllers', 'module.services','module.directives']);
 
 app.config(function ($stateProvider, $urlRouterProvider) {
     $urlRouterProvider.otherwise('/sign');
@@ -9,7 +9,7 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             controller: 'signController'
         })
         .state('list', {
-            url: '/{category:[a-z]+}',
+            url: '/:category',
             views: {
                 '': {
                     templateUrl: 'partials/list.html'
@@ -24,17 +24,17 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             }
         })
         .state('detail', {
-            url: '/:category/:id',
+            url: '/:category/{id:[0-9]{0,2}}',
             templateUrl: 'partials/detail.html',
             controller: 'detailController'
         })
-        .state('edit.new', {
-            url: '/new',
-            templateUrl:'partials/edit.html'
+        .state('create', {
+            url: '/edit/new',
+            templateUrl: 'partials/edit.html'
         })
-        .state('edit.update',{
-            url:'/:category/:id',
-            tempalteUrl:'partials/detai.html'
+        .state('update', {
+            url: '/edit/:category/:id',
+            templateUrl: 'partials/edit.html'
         });
 });
 
